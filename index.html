@@ -1,35 +1,47 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Filtro de Color con Cámara</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUSEO DE LA LUZ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       background: #111;
       color: #fff;
-      font-family: Arial, sans-serif;
+      font-family: 'Montserrat', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      padding: 10px;
       height: 100vh;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-weight: 900;
+      font-size: 1.8rem;
+      text-align: center;
+      margin: 10px 0;
     }
 
     .camera-container {
       position: relative;
-      max-width: 90vw;
-      max-height: 80vh;
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 3/4;
       overflow: hidden;
-      border: 5px solid #444;
+      border-radius: 10px;
+      border: 4px solid #444;
     }
 
-    video {
+    video, canvas {
       width: 100%;
-      height: auto;
-      display: block;
-      transform: scaleX(-1); /* Para hacer el espejo horizontal de la cámara */
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
     }
 
     .filter {
@@ -40,78 +52,164 @@
       height: 100%;
       mix-blend-mode: multiply;
       pointer-events: none;
-      transition: background-color 0.3s ease;
     }
 
-    .buttons {
-      margin-top: 20px;
+    .floating-buttons {
+      position: fixed;
+      right: 20px;
+      bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 999;
     }
 
-    .buttons button {
-      margin: 0 10px;
-      padding: 10px 20px;
-      font-size: 16px;
+    .floating-buttons button {
+      padding: 12px;
+      border: none;
+      border-radius: 50%;
+      background-color: #222;
+      color: white;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
       cursor: pointer;
+      width: 50px;
+      height: 50px;
+    }
+
+    .filter-buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .filter-buttons button {
+      padding: 8px 12px;
       border: none;
       border-radius: 4px;
       background-color: #333;
       color: white;
+      font-size: 14px;
     }
 
-    .buttons button:hover {
+    .filter-buttons button:hover {
       background-color: #555;
     }
   </style>
 </head>
 <body>
 
-  <h1>Filtro de Color en Cámara</h1>
+  <h1>MUSEO DE LA LUZ</h1>
 
   <div class="camera-container">
-    <video id="video" autoplay></video>
+    <video id="video" autoplay playsinline></video>
     <div class="filter" id="colorFilter"></div>
+    <canvas id="canvas" style="display:none;"></canvas>
   </div>
 
-  <div class="buttons">
+  <div class="filter-buttons">
     <button onclick="setFilter('red')">Rojo</button>
     <button onclick="setFilter('green')">Verde</button>
     <button onclick="setFilter('blue')">Azul</button>
     <button onclick="setFilter('none')">Sin Filtro</button>
+    <button onclick="switchCamera()">Cambiar Cámara</button>
+  </div>
+
+  <div class="floating-buttons">
+    <button onclick="takePhoto()">📷</button>
+    <button onclick="toggleRecording()">🎥</button>
   </div>
 
   <script>
-    // Acceder a la cámara
+    let currentStream = null;
+    let usingFrontCamera = true;
+    let mediaRecorder;
+    let recordedChunks = [];
+    let recording = false;
+
     async function startCamera() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: { facingMode: usingFrontCamera ? "user" : "environment" },
+        audio: true
+      };
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true
-        });
-        const video = document.getElementById('video');
-        video.srcObject = stream;
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById("video").srcObject = currentStream;
       } catch (err) {
-        console.error("Error al acceder a la cámara: ", err);
+        alert("Error al acceder a la cámara: " + err.message);
       }
     }
 
-    // Función para cambiar el filtro
     function setFilter(color) {
       const filter = document.getElementById("colorFilter");
       switch(color) {
-        case 'red':
-          filter.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
-          break;
-        case 'green':
-          filter.style.backgroundColor = 'rgba(0, 255, 0, 0.6)';
-          break;
-        case 'blue':
-          filter.style.backgroundColor = 'rgba(0, 0, 255, 0.6)';
-          break;
-        default:
-          filter.style.backgroundColor = 'transparent';
+        case 'red': filter.style.backgroundColor = 'rgba(255,0,0,0.5)'; break;
+        case 'green': filter.style.backgroundColor = 'rgba(0,255,0,0.5)'; break;
+        case 'blue': filter.style.backgroundColor = 'rgba(0,0,255,0.5)'; break;
+        default: filter.style.backgroundColor = 'transparent';
       }
     }
 
-    // Iniciar la cámara al cargar la página
+    function switchCamera() {
+      usingFrontCamera = !usingFrontCamera;
+      startCamera();
+    }
+
+    function takePhoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = 'foto.png';
+      link.click();
+    }
+
+    function toggleRecording() {
+      if (!recording) {
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/webm' });
+
+        mediaRecorder.ondataavailable = e => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'video.webm';
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        mediaRecorder.start();
+        recording = true;
+        alert("Grabando...");
+      } else {
+        mediaRecorder.stop();
+        recording = false;
+        alert("Grabación finalizada.");
+      }
+    }
+
     window.onload = startCamera;
   </script>
 
