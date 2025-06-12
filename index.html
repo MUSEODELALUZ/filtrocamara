@@ -41,7 +41,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scaleX(-1); /* espejo permanente */
+      transform: none; /* NO espejo */
     }
 
     .filter {
@@ -142,7 +142,7 @@
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         const video = document.getElementById('video');
         video.srcObject = currentStream;
-        video.style.transform = "scaleX(-1)"; // espejo permanente para ambas
+        video.style.transform = "none"; // sin espejo
       } catch (err) {
         alert("Error al acceder a la cámara: " + err.message);
       }
@@ -173,8 +173,6 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      context.translate(canvas.width, 0);
-      context.scale(-1, 1); // espejo para ambas cámaras
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       if (currentFilter !== 'none') {
