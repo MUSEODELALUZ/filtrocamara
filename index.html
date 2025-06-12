@@ -41,7 +41,6 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scaleX(-1);
     }
 
     .filter {
@@ -57,7 +56,7 @@
     .floating-buttons {
       position: fixed;
       right: 20px;
-      bottom: 30px;
+      top: 100px;
       display: flex;
       flex-direction: column;
       gap: 15px;
@@ -80,23 +79,22 @@
     .filter-buttons {
       margin-top: 10px;
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
-    .filter-buttons button {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 4px;
-      background-color: #333;
-      color: white;
-      font-size: 14px;
+    .color-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid white;
+      cursor: pointer;
     }
 
-    .filter-buttons button:hover {
-      background-color: #555;
-    }
+    #redBtn { background-color: red; }
+    #greenBtn { background-color: lime; }
+    #blueBtn { background-color: blue; }
   </style>
 </head>
 <body>
@@ -110,24 +108,21 @@
   </div>
 
   <div class="filter-buttons">
-    <button onclick="setFilter('red')">Rojo</button>
-    <button onclick="setFilter('green')">Verde</button>
-    <button onclick="setFilter('blue')">Azul</button>
-    <button onclick="setFilter('none')">Sin Filtro</button>
-    <button onclick="switchCamera()">Cambiar Cámara</button>
+    <div class="color-btn" id="redBtn" onclick="setFilter('red')"></div>
+    <div class="color-btn" id="greenBtn" onclick="setFilter('green')"></div>
+    <div class="color-btn" id="blueBtn" onclick="setFilter('blue')"></div>
+    <div class="color-btn" style="background-color: transparent;" onclick="setFilter('none')"></div>
   </div>
 
   <div class="floating-buttons">
+    <button onclick="switchCamera()">🔄</button>
     <button onclick="takePhoto()">📷</button>
-    <button onclick="toggleRecording()">🎥</button>
   </div>
 
   <script>
     let currentStream = null;
     let usingFrontCamera = true;
-    let mediaRecorder;
-    let recordedChunks = [];
-    let recording = false;
+    let currentFilter = 'none';
 
     async function startCamera() {
       if (currentStream) {
@@ -135,13 +130,23 @@
       }
 
       const constraints = {
-        video: { facingMode: usingFrontCamera ? "user" : "environment" },
-        audio: true
+        video: {
+          facingMode: usingFrontCamera ? "user" : "environment"
+        },
+        audio: false
       };
 
       try {
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        document.getElementById("video").srcObject = currentStream;
+        const video = document.getElementById('video');
+        video.srcObject = currentStream;
+
+        // aplicar espejo solo en cámara trasera
+        if (!usingFrontCamera) {
+          video.style.transform = "scaleX(-1)";
+        } else {
+          video.style.transform = "none";
+        }
       } catch (err) {
         alert("Error al acceder a la cámara: " + err.message);
       }
@@ -149,10 +154,11 @@
 
     function setFilter(color) {
       const filter = document.getElementById("colorFilter");
+      currentFilter = color;
       switch(color) {
-        case 'red': filter.style.backgroundColor = 'rgba(255,0,0,0.5)'; break;
-        case 'green': filter.style.backgroundColor = 'rgba(0,255,0,0.5)'; break;
-        case 'blue': filter.style.backgroundColor = 'rgba(0,0,255,0.5)'; break;
+        case 'red': filter.style.backgroundColor = 'rgba(255,0,0,1)'; break;
+        case 'green': filter.style.backgroundColor = 'rgba(0,255,0,1)'; break;
+        case 'blue': filter.style.backgroundColor = 'rgba(0,0,255,1)'; break;
         default: filter.style.backgroundColor = 'transparent';
       }
     }
@@ -166,48 +172,32 @@
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const context = canvas.getContext('2d');
+      const filter = document.getElementById('colorFilter');
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      context.translate(canvas.width, 0);
-      context.scale(-1, 1);
+      if (!usingFrontCamera) {
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+      }
+
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      if (currentFilter !== 'none') {
+        context.fillStyle = filter.style.backgroundColor;
+        context.globalAlpha = 0.5;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.globalAlpha = 1.0;
+      }
 
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
       link.download = 'foto.png';
+      document.body.appendChild(link);
       link.click();
-    }
-
-    function toggleRecording() {
-      if (!recording) {
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'video/webm' });
-
-        mediaRecorder.ondataavailable = e => {
-          if (e.data.size > 0) recordedChunks.push(e.data);
-        };
-
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(recordedChunks, { type: 'video/webm' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'video.webm';
-          a.click();
-          URL.revokeObjectURL(url);
-        };
-
-        mediaRecorder.start();
-        recording = true;
-        alert("Grabando...");
-      } else {
-        mediaRecorder.stop();
-        recording = false;
-        alert("Grabación finalizada.");
-      }
+      document.body.removeChild(link);
     }
 
     window.onload = startCamera;
