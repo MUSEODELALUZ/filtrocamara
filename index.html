@@ -41,7 +41,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: none; /* NO espejo */
+      transform: none; /* sin espejo */
     }
 
     .filter {
@@ -51,8 +51,8 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      mix-blend-mode: lighten;
-      opacity: 0.8;
+      background-color: transparent;
+      z-index: 2;
     }
 
     .floating-buttons {
@@ -142,7 +142,7 @@
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         const video = document.getElementById('video');
         video.srcObject = currentStream;
-        video.style.transform = "none"; // sin espejo
+        video.style.transform = "none";
       } catch (err) {
         alert("Error al acceder a la cámara: " + err.message);
       }
@@ -158,41 +158,3 @@
         default: filter.style.backgroundColor = 'transparent';
       }
     }
-
-    function switchCamera() {
-      usingFrontCamera = !usingFrontCamera;
-      startCamera();
-    }
-
-    function takePhoto() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      const filter = document.getElementById('colorFilter');
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      if (currentFilter !== 'none') {
-        context.fillStyle = filter.style.backgroundColor;
-        context.globalAlpha = 0.5;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.globalAlpha = 1.0;
-      }
-
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = 'foto.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    window.onload = startCamera;
-  </script>
-
-</body>
-</html>
