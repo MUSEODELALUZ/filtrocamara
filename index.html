@@ -41,6 +41,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transform: scaleX(-1); /* espejo permanente */
     }
 
     .filter {
@@ -49,7 +50,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      mix-blend-mode: multiply;
+      mix-blend-mode: overlay;
       pointer-events: none;
     }
 
@@ -92,9 +93,9 @@
       cursor: pointer;
     }
 
-    #redBtn { background-color: red; }
-    #greenBtn { background-color: lime; }
-    #blueBtn { background-color: blue; }
+    #redBtn { background-color: #ff0000; }
+    #greenBtn { background-color: #00ff00; }
+    #blueBtn { background-color: #0000ff; }
   </style>
 </head>
 <body>
@@ -140,13 +141,6 @@
         currentStream = await navigator.mediaDevices.getUserMedia(constraints);
         const video = document.getElementById('video');
         video.srcObject = currentStream;
-
-        // aplicar espejo solo en cámara trasera
-        if (!usingFrontCamera) {
-          video.style.transform = "scaleX(-1)";
-        } else {
-          video.style.transform = "none";
-        }
       } catch (err) {
         alert("Error al acceder a la cámara: " + err.message);
       }
@@ -156,9 +150,9 @@
       const filter = document.getElementById("colorFilter");
       currentFilter = color;
       switch(color) {
-        case 'red': filter.style.backgroundColor = 'rgba(255,0,0,1)'; break;
-        case 'green': filter.style.backgroundColor = 'rgba(0,255,0,1)'; break;
-        case 'blue': filter.style.backgroundColor = 'rgba(0,0,255,1)'; break;
+        case 'red': filter.style.backgroundColor = 'rgba(255,0,0,0.8)'; break;
+        case 'green': filter.style.backgroundColor = 'rgba(0,255,0,0.8)'; break;
+        case 'blue': filter.style.backgroundColor = 'rgba(0,0,255,0.8)'; break;
         default: filter.style.backgroundColor = 'transparent';
       }
     }
@@ -177,11 +171,8 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      if (!usingFrontCamera) {
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
-      }
-
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1); // espejo permanente en ambas cámaras
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       if (currentFilter !== 'none') {
