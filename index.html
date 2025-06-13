@@ -51,8 +51,8 @@
       height: 100%;
       pointer-events: none;
       background-color: transparent;
-      mix-blend-mode: screen;
-      opacity: 0.2;
+      mix-blend-mode: multiply;
+      opacity: 0;
       z-index: 2;
     }
 
@@ -164,19 +164,19 @@
       switch (color) {
         case 'red':
           filter.style.backgroundColor = 'rgb(255, 0, 0)';
-          filter.style.opacity = '0.2';
+          filter.style.opacity = '0.9';
           break;
         case 'green':
           filter.style.backgroundColor = 'rgb(0, 255, 0)';
-          filter.style.opacity = '0.2';
+          filter.style.opacity = '0.9';
           break;
         case 'blue':
           filter.style.backgroundColor = 'rgb(0, 0, 255)';
-          filter.style.opacity = '0.2';
+          filter.style.opacity = '0.9';
           break;
         default:
           filter.style.backgroundColor = 'transparent';
-          filter.style.opacity = '.2';
+          filter.style.opacity = '0';
       }
     }
 
