@@ -43,7 +43,7 @@
       pointer-events: none;
       background-color: transparent;
       mix-blend-mode: multiply;
-      opacity: 1;
+      opacity: 6;
       z-index: 2;
     }
     .filter-buttons, .floating-buttons {
@@ -123,11 +123,11 @@
       const f = document.getElementById('colorFilter');
       currentFilter = color;
       if (color === 'red') {
-        f.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+        f.style.backgroundColor = 'rgba(255, 0, 0, 1)';
       } else if (color === 'green') {
-        f.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
+        f.style.backgroundColor = 'rgba(0, 255, 0, 1)';
       } else if (color === 'blue') {
-        f.style.backgroundColor = 'rgba(0, 0, 255, 0.15)';
+        f.style.backgroundColor = 'rgba(0, 0, 255, 1)';
       } else {
         f.style.backgroundColor = 'transparent';
       }
