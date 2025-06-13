@@ -51,8 +51,8 @@
       height: 100%;
       pointer-events: none;
       background-color: transparent;
-      mix-blend-mode: screen;
-      opacity: 0.9;
+      mix-blend-mode: multiply;
+      opacity: 1;
       z-index: 2;
     }
 
@@ -103,9 +103,9 @@
       cursor: pointer;
     }
 
-    #redBtn { background-color: rgb(255, 0, 0); }
-    #greenBtn { background-color: rgb(0, 255, 0); }
-    #blueBtn { background-color: rgb(0, 0, 255); }
+    #redBtn { background-color: rgba(255, 0, 0, 0.6); }
+    #greenBtn { background-color: rgba(0, 255, 0, 0.6); }
+    #blueBtn { background-color: rgba(0, 0, 255, 0.6); }
   </style>
 </head>
 <body>
@@ -149,11 +149,11 @@
       const f = document.getElementById('colorFilter');
       currentFilter = color;
       if (color === 'red') {
-        f.style.backgroundColor = 'rgb(255, 0, 0)';
+        f.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
       } else if (color === 'green') {
-        f.style.backgroundColor = 'rgb(0, 255, 0)';
+        f.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
       } else if (color === 'blue') {
-        f.style.backgroundColor = 'rgb(0, 0, 255)';
+        f.style.backgroundColor = 'rgba(0, 0, 255, 0.15)';
       } else {
         f.style.backgroundColor = 'transparent';
       }
@@ -177,9 +177,7 @@
 
       if (currentFilter !== 'none') {
         ctx.fillStyle = f.style.backgroundColor;
-        ctx.globalAlpha = 0.9;
         ctx.fillRect(0, 0, c.width, c.height);
-        ctx.globalAlpha = 1.0;
       }
 
       const img = c.toDataURL('image/png');
