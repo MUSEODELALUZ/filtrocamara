@@ -52,7 +52,7 @@
       pointer-events: none;
       background-color: transparent;
       mix-blend-mode: screen;
-      opacity: 0;
+      opacity: 1;
       z-index: 2;
     }
 
@@ -106,7 +106,6 @@
     #redBtn { background-color: rgb(255, 0, 0); }
     #greenBtn { background-color: rgb(0, 255, 0); }
     #blueBtn { background-color: rgb(0, 0, 255); }
-    #multiBtn { background: linear-gradient(45deg, red, green, blue); }
   </style>
 </head>
 <body>
@@ -123,8 +122,7 @@
     <div class="color-btn" id="redBtn" onclick="setFilter('red')"></div>
     <div class="color-btn" id="greenBtn" onclick="setFilter('green')"></div>
     <div class="color-btn" id="blueBtn" onclick="setFilter('blue')"></div>
-    <div class="color-btn" id="multiBtn" onclick="startColorCycle()"></div>
-    <div class="color-btn" style="background-color: transparent;" onclick="stopColorCycle(); setFilter('none');"></div>
+    <div class="color-btn" style="background-color: transparent;" onclick="setFilter('none')"></div>
   </div>
 
   <div class="floating-buttons">
@@ -136,7 +134,6 @@
     let currentStream = null;
     let usingFrontCamera = true;
     let currentFilter = 'none';
-    let cycleInterval = null;
 
     async function startCamera() {
       if (currentStream) {
@@ -161,42 +158,14 @@
     }
 
     function setFilter(color) {
-      clearInterval(cycleInterval);
       const filter = document.getElementById("colorFilter");
       currentFilter = color;
-
-      switch (color) {
-        case 'red':
-          filter.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
-          filter.style.opacity = '1';
-          break;
-        case 'green':
-          filter.style.backgroundColor = 'rgba(0, 255, 0, 0.9)';
-          filter.style.opacity = '1';
-          break;
-        case 'blue':
-          filter.style.backgroundColor = 'rgba(0, 0, 255, 0.9)';
-          filter.style.opacity = '1';
-          break;
-        default:
-          filter.style.backgroundColor = 'transparent';
-          filter.style.opacity = '0';
-          break;
+      switch(color) {
+        case 'red': filter.style.backgroundColor = 'rgba(255, 0, 0, 0.3)'; break;
+        case 'green': filter.style.backgroundColor = 'rgba(0, 255, 0, 0.3)'; break;
+        case 'blue': filter.style.backgroundColor = 'rgba(0, 0, 255, 0.3)'; break;
+        default: filter.style.backgroundColor = 'transparent';
       }
-    }
-
-    function startColorCycle() {
-      const colors = ['red', 'green', 'blue'];
-      let index = 0;
-      setFilter(colors[index]);
-      cycleInterval = setInterval(() => {
-        index = (index + 1) % colors.length;
-        setFilter(colors[index]);
-      }, 1000);
-    }
-
-    function stopColorCycle() {
-      clearInterval(cycleInterval);
     }
 
     function switchCamera() {
@@ -217,9 +186,7 @@
 
       if (currentFilter !== 'none') {
         context.fillStyle = filter.style.backgroundColor;
-        context.globalAlpha = parseFloat(filter.style.opacity);
         context.fillRect(0, 0, canvas.width, canvas.height);
-        context.globalAlpha = 1.0;
       }
 
       const image = canvas.toDataURL('image/png');
