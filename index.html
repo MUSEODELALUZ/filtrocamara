@@ -51,8 +51,8 @@
       height: 100%;
       pointer-events: none;
       background-color: transparent;
-      opacity: 0.6;
-      mix-blend-mode: normal;
+      mix-blend-mode: screen;
+      opacity: 1;
       z-index: 2;
     }
 
@@ -80,7 +80,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.2s ease;
+      transition: background 0.2s ease;
     }
 
     .floating-buttons button:hover {
@@ -103,9 +103,9 @@
       cursor: pointer;
     }
 
-    #redBtn { background-color: rgb(255, 0, 0); }
-    #greenBtn { background-color: rgb(0, 255, 0); }
-    #blueBtn { background-color: rgb(0, 0, 255); }
+    #redBtn { background-color: rgba(255, 0, 0, 1); }
+    #greenBtn { background-color: rgba(0, 255, 0, 1); }
+    #blueBtn { background-color: rgba(0, 0, 255, 1); }
   </style>
 </head>
 <body>
@@ -131,71 +131,60 @@
   </div>
 
   <script>
-    let currentStream = null;
-    let usingFrontCamera = true;
-    let currentFilter = 'none';
+    let stream = null, usingFront = true, currentFilter = 'none';
 
     async function startCamera() {
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-      }
-
-      const constraints = {
-        video: {
-          facingMode: usingFrontCamera ? "user" : "environment"
-        },
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      const cam = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: usingFront ? 'user' : 'environment' },
         audio: false
-      };
-
-      try {
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        const video = document.getElementById('video');
-        video.srcObject = currentStream;
-        video.style.transform = usingFrontCamera ? "scaleX(-1)" : "none";
-      } catch (err) {
-        alert("Error al acceder a la cámara: " + err.message);
-      }
+      });
+      const video = document.getElementById('video');
+      video.srcObject = cam;
+      stream = cam;
+      video.style.transform = usingFront ? 'scaleX(-1)' : 'none';
     }
 
     function setFilter(color) {
-      const filter = document.getElementById("colorFilter");
+      const f = document.getElementById('colorFilter');
       currentFilter = color;
-      switch(color) {
-        case 'red': filter.style.backgroundColor = 'rgb(255, 0, 0)'; break;
-        case 'green': filter.style.backgroundColor = 'rgb(0, 255, 0)'; break;
-        case 'blue': filter.style.backgroundColor = 'rgb(0, 0, 255)'; break;
-        default: filter.style.backgroundColor = 'transparent';
+      if (color === 'red') {
+        f.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+      } else if (color === 'green') {
+        f.style.backgroundColor = 'rgba(0, 255, 0, 0.9)';
+      } else if (color === 'blue') {
+        f.style.backgroundColor = 'rgba(0, 0, 255, 0.9)';
+      } else {
+        f.style.backgroundColor = 'transparent';
       }
     }
 
     function switchCamera() {
-      usingFrontCamera = !usingFrontCamera;
+      usingFront = !usingFront;
       startCamera();
     }
 
     function takePhoto() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      const filter = document.getElementById('colorFilter');
+      const v = document.getElementById('video'),
+            c = document.getElementById('canvas'),
+            ctx = c.getContext('2d'),
+            f = document.getElementById('colorFilter');
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      c.width = v.videoWidth;
+      c.height = v.videoHeight;
 
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(v, 0, 0, c.width, c.height);
 
       if (currentFilter !== 'none') {
-        context.fillStyle = filter.style.backgroundColor;
-        context.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = f.style.backgroundColor;
+        ctx.fillRect(0, 0, c.width, c.height);
       }
 
-      const image = canvas.toDataURL('image/png');
+      const img = c.toDataURL('image/png');
       const link = document.createElement('a');
-      link.href = image;
+      link.href = img;
       link.download = 'foto.png';
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
     }
 
     window.onload = startCamera;
