@@ -52,7 +52,7 @@
       height: 100%;
       pointer-events: none;
       background-color: transparent;
-      opacity: 0.6; /* Opacidad para efecto tipo ilusión óptica */
+      opacity: 0.6;
       mix-blend-mode: normal;
       z-index: 2;
     }
@@ -72,12 +72,18 @@
       border: none;
       border-radius: 50%;
       background-color: #222;
-      color: white;
-      font-size: 18px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
       cursor: pointer;
       width: 50px;
       height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .floating-buttons img {
+      width: 24px;
+      height: 24px;
     }
 
     .filter-buttons {
@@ -119,8 +125,12 @@
   </div>
 
   <div class="floating-buttons">
-    <button onclick="switchCamera()">🔄</button>
-    <button onclick="takePhoto()">📷</button>
+    <button onclick="switchCamera()">
+      <img src="c3d0c2a0-5020-4e62-b452-33462cedf7f1.png" alt="Rotar cámara" />
+    </button>
+    <button onclick="takePhoto()">
+      <img src="0f9b06f4-2bff-4b1d-ba50-3b7a8fe5187d.png" alt="Tomar foto" />
+    </button>
   </div>
 
   <script>
@@ -157,9 +167,9 @@
         case 'red':
           filter.style.backgroundColor = 'rgba(255, 0, 0, 1)'; break;
         case 'green':
-          filter.style.backgroundColor = 'rgba(0, 255, 0, 1|)'; break;
+          filter.style.backgroundColor = 'rgba(0, 255, 0, 1)'; break;
         case 'blue':
-          filter.style.backgroundColor = 'rgba(0, 0, 255, 1.2)'; break;
+          filter.style.backgroundColor = 'rgba(0, 0, 255, 1)'; break;
         default:
           filter.style.backgroundColor = 'transparent';
       }
@@ -182,7 +192,7 @@
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       if (currentFilter !== 'none') {
-        context.fillStyle = filter.style.backgroundColor; // igual a la opacidad visual
+        context.fillStyle = filter.style.backgroundColor;
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalAlpha = 1.0;
       }
